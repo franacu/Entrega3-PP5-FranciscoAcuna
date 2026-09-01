@@ -1,47 +1,28 @@
-Clase 1 — Conceptos de POO y su expresión en Python
-Facultad de Ingeniería del Ejército · POO en Python
+# Taller mecánico
 
-← Todos los ejercicios
-Préstamo de biblioteca
-Una biblioteca presta ejemplares por 7 días. Necesitamos representar un préstamo sin diccionarios ni funciones que calculen reglas por afuera.
+## Análisis
 
-Creá la clase Prestamo en solucion/prestamo.py. Al crearla recibe titulo, nombre_socio y dias_transcurridos. Un préstamo es válido solo si el título y el socio no están vacíos, y los días transcurridos no son negativos. Para datos inválidos, lanzá ValueError.
+Conceptos: orden de trabajo, ítem de trabajo, vehículo, mecánico, taller.
+"Presupuesto" no es clase: se calcula sumando costos, no tiene estado propio.
 
-Su protocolo público debe ser:
+## Tarjetas CRC
 
-prestamo = Prestamo("El principito", "Ana", 9)
+Mecanico: sabe su nombre.
+Vehiculo: sabe su patente.
+ItemDeTrabajo: sabe tipo, costo y a qué orden pertenece. Colaborador: OrdenDeTrabajo.
+OrdenDeTrabajo: agrega items (rechaza los que ya tienen dueño), calcula presupuesto. Colaboradores: ItemDeTrabajo, Vehiculo.
+Taller: agrega mecánicos a la plantilla. Colaborador: Mecanico.
 
-assert prestamo.esta_vencido() is True
-assert prestamo.dias_de_retraso() == 2
-assert prestamo.resumen() == "El principito — Ana — vencido (2 días)"
-Reglas:
+## Relaciones
 
-esta_vencido() devuelve True solo si pasaron más de 7 días.
-dias_de_retraso() devuelve 0 si todavía está en término.
-resumen() devuelve "<título> — <socio> — en término" o "<título> — <socio> — vencido (<n> días)".
-El código que usa el préstamo no debe calcular si venció ni sus días de retraso leyendo atributos.
-Prestamo
+Taller - Mecanico: Agregación. Un mecánico existe con su propio nombre
+aunque el taller no exista. No es composición porque no depende del taller
+para existir.
 
-+titulo
+OrdenDeTrabajo - Vehiculo: Asociación. La orden guarda una referencia al
+vehículo, pero el vehículo existe independiente y puede tener otras órdenes.
 
-+nombre_socio
-
-+dias_transcurridos
-
-+esta_vencido() : bool
-
-+dias_de_retraso() : int
-
-+resumen() : str
-
-Evidencia a entregar
-solucion/prestamo.py con la clase.
-tests/test_prestamo.py con al menos cuatro tests: préstamo en término, préstamo vencido, retraso cero y un dato inválido.
-Una respuesta breve (3 a 5 líneas): ¿qué regla quedó dentro de Prestamo y qué problema habría si la calculara quien usa el objeto?
-
-
-
-RESPUESTA FINAL:
-Dentro de Prestamo quedó la regla de los 7 días límite y la cuenta para saber si está vencido y cuántos días de demora lleva.
-
-Si ese cálculo se hiciera por fuera, estaríamos desparramando la lógica por todo el sistema y rompiendo el encapsulamiento. El gran problema sería el mantenimiento: si mañana la biblioteca decide cambiar el plazo a 14 días, tendríamos que buscar y corregir esa cuenta en diez lugares distintos del código en vez de modificar un solo número dentro de la clase.
+ItemDeTrabajo - OrdenDeTrabajo: Composición. Un item no tiene sentido
+fuera de la orden. No puede pertenecer a dos órdenes a la vez (raise en
+agregar_item). No es agregación porque no se puede mover libremente a otra
+orden.
