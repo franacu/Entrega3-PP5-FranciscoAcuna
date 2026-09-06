@@ -1,38 +1,55 @@
 import pytest
-from solucion.taller import Vehiculo, ItemDeTrabajo, OrdenDeTrabajo, Mecanico, Taller
+from solucion.estacionamiento import (
+    Estadia, EstadiaMensual, Nocturna, FinDeSemana,
+    ModificadorTarifa, facturar,
+)
 
 
-def test_presupuesto():
-    v = Vehiculo("AB123CD")
-    orden = OrdenDeTrabajo(1, v)
-
-    item1 = ItemDeTrabajo("repuesto", 5000)
-    item2 = ItemDeTrabajo("mano_de_obra", 3000)
-
-    orden.agregar_item(item1)
-    orden.agregar_item(item2)
-
-    assert orden.presupuesto() == 8000
+def test_calculo_con_modificador():
+    estadia = Estadia("AB123CD", 2)
+    estadia.agregar_modificador(Nocturna())
+    assert estadia.total(1000) == 2400
 
 
-def test_item_no_puede_estar_en_dos_ordenes():
-    orden1 = OrdenDeTrabajo(1, Vehiculo("AB123CD"))
-    orden2 = OrdenDeTrabajo(2, Vehiculo("XY987ZW"))
-    item = ItemDeTrabajo("repuesto", 5000)
-
-    orden1.agregar_item(item)
-
+def test_validacion_horas_negativas():
     with pytest.raises(ValueError):
-        orden2.agregar_item(item)
-
-    assert len(orden2.items()) == 0
-    assert item.orden == orden1
+        Estadia("AB123CD", -1)
 
 
-def test_taller_agrega_mecanico():
-    taller = Taller()
-    mecanico = Mecanico("Juan")
+def test_rechaza_modificador_invalido():
+    estadia = Estadia("AB123CD", 2)
+    with pytest.raises(TypeError):
+        estadia.agregar_modificador("no soy un modificador")
 
-    taller.agregar_mecanico(mecanico)
 
-    assert mecanico in taller.mecanicos()
+def test_modificadores_es_inmutable_desde_afuera():
+    estadia = Estadia("AB123CD", 2)
+    estadia.agregar_modificador(Nocturna())
+
+    tupla_externa = estadia.modificadores
+    tupla_externa = tupla_externa + (FinDeSemana(),)  # esto crea una tupla NUEVA
+
+    # el estado interno no debería haberse alterado
+    assert estadia.total(1000) == 2400
+
+
+def test_estadia_mensual_propaga_validacion_de_horas():
+    with pytest.raises(ValueError):
+        EstadiaMensual("XY987ZW", -1, descuento=20)
+
+
+def test_estadia_mensual_con_descuento():
+    mensual = EstadiaMensual("XY987ZW", 2, descuento=20)
+    mensual.agregar_modificador(Nocturna())
+    assert mensual.total(1000) == 1920
+
+
+def test_facturar_lista_mixta():
+    e1 = Estadia("AB123CD", 2)
+    e1.agregar_modificador(Nocturna())
+
+    e2 = EstadiaMensual("XY987ZW", 2, descuento=20)
+    e2.agregar_modificador(Nocturna())
+
+    total = facturar([e1, e2], tarifa_por_hora=1000)
+    assert total == 2400 + 1920
