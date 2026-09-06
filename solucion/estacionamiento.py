@@ -26,8 +26,6 @@ class Estadia:
         return patente
 
     def agregar_modificador(self, modificador):
-        if not isinstance(modificador, ModificadorTarifa):
-            raise TypeError("El modificador no cumple el contrato")
         self._modificadores.append(modificador)
 
     @property
